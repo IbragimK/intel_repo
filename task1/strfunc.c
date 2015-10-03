@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "strlib.h"
 
 int inputline(char* line) {
@@ -19,23 +20,28 @@ void linecpy(char* fromline, char* toline) {
 }
 
 int linecmp(char* fline, char* sline) {
-	for( ; *fline == *sline; fline++, sline++)
-		if (*--fline == '\0')
+	for ( ; *fline == *sline; fline++, sline++)
+		if (*fline == '\0')
 			return 0;
 	return *fline - *sline;
 }
 
 int findsub(char* substr, char* eldstr) {
-	char* peldstr = eldstr;
+	char* peldstr = malloc(5*sizeof(char));
+	char* tempstr = malloc(5*sizeof(char));
+	peldstr = eldstr;
 	int lensub = strlength(substr);
 	int leneld = strlength(eldstr);
 	while (peldstr - eldstr + lensub <= leneld) {
-		if (!linecmp(substr, peldstr++)) {
-			printf("\nSubstring is found on position %ld\n",
-					peldstr - eldstr);
-			return 1;
+		linecpy(peldstr++, tempstr);
+		if (!linecmp(substr, _linecut(tempstr, lensub))) {
+			return peldstr - eldstr;
 		}
 	}
-	printf("\nSubstring is not found\n");
 	return 0;
+}
+
+char* _linecut(char* line, int lencuts) { 
+	while (*(line++ + lencuts) = *((char*)""));
+	return --line; 
 }

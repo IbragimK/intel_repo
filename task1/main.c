@@ -2,23 +2,32 @@
 #include <stdlib.h>
 #include "strlib.h"
 
-//accert
-
-int main() {
-	char* line1 = malloc(1024);
-	char* line2 = malloc(1024);
-	char* line3 = malloc(1024);
-	inputline(line1);
+#define ASSERT(cond) if (!cond) {				\
+			printf("Error: invalid pointer\n");	\
+			exit (-1);							\
+		}
+ 
+int main() {				
+	char* linexmpl = malloc(5*sizeof(char));
+	char* cpdline = malloc(5*sizeof(char));
+	char* subline = malloc(5*sizeof(char));
+	int pos = 0;
+	inputline(linexmpl);
+	ASSERT(linexmpl > 0);
 	printf("\nLength of line '%s':%d\n\n",
-			line1, strlength(line1));
-	linecpy(line1, line2);
-	printf("Result of copying: %s\n\n", line2);
-	printf("Searching substring in '%s':", line1);
-	inputline(line3);
+			linexmpl, strlength(linexmpl));
+	linecpy(linexmpl, cpdline);
+	printf("Result of copying:%s\n\n", cpdline);
+	printf("Searching substring in '%s':", linexmpl);
+	inputline(subline);
+	ASSERT(subline > 0);
 	"\n";
-	findsub(line3,line1);
-	free(line1);
-	free(line2);
-	free(line3);
+	if (pos = findsub(subline, linexmpl))
+		printf("\nSubstring is found on position:%d\n", pos);
+	else
+		printf("\nSubstring is no found\n");
+	free(linexmpl);
+	free(cpdline);
+	free(subline);
 	return 0;
 }
