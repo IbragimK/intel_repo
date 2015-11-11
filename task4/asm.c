@@ -4,68 +4,54 @@
 
 #define MAX_CMDS 100
 
-typedef struct cmds {
-	int* list;
-	int size;
-} cmds_t;
-
 long int file_size(FILE *f);
-long int read_cmds_norm(char* b, FILE* f);
-cmds_t translate_cmds_norm(char* b, long int b_s);
-char* _get_next_val(char* b, long int c_p, long int b_s);
-int ncmd(int* c_r);
+long int read_buf_verb(char* b_v);
+int translate_buf_verb(int* b_n, char* b_v, long int b_s);
+char* _get_next_val(char* b_v, long int c_p, long int b_s);
+void write_buf_numeric(int* b_n, int n_e);
+long int size_of_buffer(void);
 
 int main() {
-	FILE* f_cmds_norm = fopen("prog.myasm", "rb");
-	char* buf = calloc(MAX_CMDS, sizeof(char));
+	char* buf_verb = calloc(MAX_CMDS, sizeof(char));
+	int num_elmts;
 	long int buf_size;
-	cmds_t cmds_rev;
+	int* buf_numeric = calloc(MAX_CMDS, sizeof(int));
 
-	cmds_rev.list = calloc(MAX_CMDS, sizeof(int));
-	buf_size = read_cmds_norm(buf, f_cmds_norm);
-	cmds_rev = translate_cmds_norm(buf, buf_size);
-
-	fclose(f_cmds_norm);
-
-	FILE* f_cmds_rev = fopen("commands.myexe", "wb");
-	
-	fwrite(cmds_rev.list, sizeof(int), cmds_rev.size, f_cmds_rev);
-	
-	fclose(f_cmds_rev);
+	buf_numeric = calloc(MAX_CMDS, sizeof(int));
+	buf_size = read_buf_verb(buf_verb);
+	num_elmts = translate_buf_verb(buf_numeric, buf_verb, buf_size);
+	write_buf_numeric(buf_numeric, num_elmts);
 
 	return 0;
 }
 
-cmds_t translate_cmds_norm(char* buf, long int buf_size) {
-	cmds_t cmd_rev;
+int translate_buf_verb(int* buf_numeric, char* buf_verb, long int buf_size) {
 	char* next_val = malloc(sizeof(char) * 10);
 	long int curr_pos = 0;
-	long int count_cmds = 0;
+	long int num_elmts = 0;
 	
-	cmd_rev.list = calloc(MAX_CMDS, sizeof(int));
 	while ((curr_pos < buf_size) &&
-				(next_val = _get_next_val(buf, curr_pos, buf_size))) {
+				(next_val = _get_next_val(buf_verb, curr_pos, buf_size))) {
 		#define DEF_CMD(name, num, code)		\
 		if (!strcmp(next_val, #name))			\
-			*(cmd_rev.list + count_cmds) = num;	\
+			*(buf_numeric + num_elmts) = num;	\
 		else
 		#include "cmd_list.h"
-			*(cmd_rev.list + count_cmds) = atoi(next_val);
+		#undef DEF_CMD
+		*(buf_numeric + num_elmts) = atoi(next_val);
 		curr_pos += strlen(next_val) + 1;
-		count_cmds++;
+		num_elmts++;
 	}
-	#undef DEF_CMD
-	cmd_rev.size = count_cmds;
 
-	return cmd_rev;
+	return num_elmts;
 }
 
-char* _get_next_val(char* buf, long int curr_pos, long int buf_size) {
+char* _get_next_val(char* buf_verb, long int curr_pos, long int buf_size) {
 	char* curr_val = calloc(10, sizeof(char));
 	long int count = 0;
 
-	while (!isspace(*(buf + curr_pos))) {
-		*(curr_val + count) = *(buf + curr_pos);
+	while (!isspace(*(buf_verb + curr_pos))) {
+		*(curr_val + count) = *(buf_verb + curr_pos);
 		curr_pos++;
 		count++;
 	}
@@ -76,12 +62,24 @@ char* _get_next_val(char* buf, long int curr_pos, long int buf_size) {
 	return curr_val;
 }
 
-long int read_cmds_norm(char* buf, FILE* file) {
+long int read_buf_verb(char* buf_verb) {
+	FILE* file = fopen("prog.myasm", "rb");
 	long int fsize = file_size(file);
+	long int buf_size;
 	
-	fread(buf, sizeof(char), fsize, file);
+	buf_size = fread(buf_verb, sizeof(char), fsize, file);
 
-	return fsize;
+	fclose(file);
+
+	return buf_size;
+}
+
+void write_buf_numeric(int* buf_numeric, int num_elmts) {
+	FILE* file = fopen("commands.myexe", "wb");
+	
+	fwrite(buf_numeric, sizeof(int), num_elmts, file);
+	
+	fclose(file);
 }
 
 long int file_size(FILE *file) {
@@ -94,6 +92,4 @@ long int file_size(FILE *file) {
 
 	return(size_of_file);
 }
-
-
 
